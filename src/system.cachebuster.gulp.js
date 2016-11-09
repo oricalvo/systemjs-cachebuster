@@ -33,15 +33,17 @@ SystemJSCacheBuster.prototype.incremental = function() {
 }
 
 SystemJSCacheBuster.prototype._processFile = function (file) {
-    var hash = crypto.createHash('sha1').update(file._contents).digest('hex');
+    if (file._contents != null) {
+        var hash = crypto.createHash('sha1').update(file._contents).digest('hex');
 
-    var relFilePath = upath.normalize(path.relative(this.baseDir, file.path));
-    this.hashes[relFilePath] = {
-        path: relFilePath,
-        hash: hash,
-    };
+        var relFilePath = upath.normalize(path.relative(this.baseDir, file.path));
+        this.hashes[relFilePath] = {
+            path: relFilePath,
+            hash: hash,
+        };
 
-    console.log("Updating hash: " + relFilePath + " --> " + hash);
+        console.log("Updating hash: " + relFilePath + " --> " + hash);
+    }
 }
 
 SystemJSCacheBuster.prototype._flushIndex = function() {
