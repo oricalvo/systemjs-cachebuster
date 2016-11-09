@@ -11,6 +11,9 @@
     
     function config(options) {
         enableLogs = (options.enableLogs===undefined ? false : !!options.enableLogs);
+        baseUrl = (options.baseUrl === undefined ? baseUrl : options.baseUrl);
+        
+        normalizeBaseUrl();
     }
 
     function log(message) {
@@ -35,9 +38,13 @@
         }
         else {
             baseUrl = location.origin;
-            if(baseUrl[baseUrl.length-1]!="/") {
-                baseUrl += "/";
-            }
+            normalizeBaseUrl();
+        }
+    }
+
+    function normalizeBaseUrl() {
+        if(baseUrl[baseUrl.length-1]!="/") {
+            baseUrl += "/";
         }
     }
 
