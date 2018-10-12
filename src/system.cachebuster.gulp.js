@@ -8,14 +8,15 @@ function SystemJSCacheBuster (options) {
     options = options || {};
 
     var outputFileName = options.output || "system.cachebuster.json";
-    this.outputFilePath = path.join(process.cwd(), outputFileName);
-    this.baseDir = options.baseDir || process.cwd();
+    var outputFolderPath = options.outputFolderPath || process.cwd();
+    this.outputFilePath = path.join(outputFolderPath, outputFileName);
+    this.baseDir = options.baseDir || outputFolderPath;
     this.hashes = {};
 }
 
 SystemJSCacheBuster.prototype.full = function() {
     var me = this;
-    
+
     var writable = new FileHashTransform(me);
     writable.on("finish", function() {
         me._flushIndex();
@@ -33,27 +34,29 @@ SystemJSCacheBuster.prototype.incremental = function() {
 }
 
 SystemJSCacheBuster.prototype._processFile = function (file) {
-    var hash = crypto.createHash('sha1').update(file._contents).digest('hex');
+    if (file._contents) {
+        var hash = crypto.createHash('sha1').update(file._contents).digest('hex');
 
-    var relFilePath = upath.normalize(path.relative(this.baseDir, file.path));
-    this.hashes[relFilePath] = {
-        path: relFilePath,
-        hash: hash,
-    };
+        var relFilePath = upath.normalize(path.relative(this.baseDir, file.path));
+        this.hashes[relFilePath] = {
+            path: relFilePath,
+            hash: hash,
+        };
 
-    console.log("Updating hash: " + relFilePath + " --> " + hash);
+        console.log("Updating hash: " + relFilePath + " --> " + hash);
+    }
 }
 
 SystemJSCacheBuster.prototype._flushIndex = function() {
     console.log("Writing summary file: " + this.outputFilePath);
-    
+
     fs.writeFileSync(this.outputFilePath, JSON.stringify(this.hashes));
 }
 
 function FileHashTransform (index, flushIndex) {
     this.index = index;
     this.flushIndex = flushIndex;
-    
+
     stream.Transform.call(this, {objectMode: true});
 }
 
@@ -71,7 +74,7 @@ FileHashTransform.prototype._transform  = function (file, encoding, callback) {
     this.index._processFile(file);
 
     this.push(file);
-    
+
     callback();
 }
 
